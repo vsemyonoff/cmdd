@@ -1,0 +1,29 @@
+#!/bin/bash
+#
+# ConnMan state handler script, called by '@PROJECT_NAME@' on network state changes.
+#
+# Arguments description:
+#  ${1} - new state,
+#  ${2} - old state
+#
+PROJECT_NAME="@PROJECT_NAME@"
+
+set -e
+
+function run_handlers() {
+    shopt -s nullglob
+    for script in "/etc/@PROJECT_NAME@.conf.d/${1}.d/"* ; do
+        echo "@PROJECT_NAME@::info: executing '${script}'..."
+        source "${script}" "${1}" "${2}"
+        [[ ${?} != 0 ]] && echo "@PROJECT_NAME@::error: '${script}' execution failed"
+    done
+}
+
+case "${1}" in
+    idle|offline|online|ready)
+        run_handlers "${1}" "${2}"
+        ;;
+    *)
+        echo "@PROJECT_NAME@::error: invalid ConnMan state: ${1}"
+        ;;
+esac

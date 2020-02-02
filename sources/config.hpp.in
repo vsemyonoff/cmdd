@@ -1,0 +1,16 @@
+#pragma once
+
+#define VERSION(a,b,c) (((a) << 16) + ((b) << 8) + (c))
+
+namespace Config {
+  constexpr static auto InstallPrefix   { "@CMAKE_INSTALL_PREFIX@" };
+
+  constexpr static auto MainProjectName { "@CMAKE_PROJECT_NAME@" };
+  constexpr static auto ProjectName     { "@PROJECT_NAME@" };
+
+  constexpr static auto VersionMajor    { @PROJECT_VERSION_MAJOR@ };
+  constexpr static auto VersionMinor    { @PROJECT_VERSION_MINOR@ };
+  constexpr static auto VersionPatch    { @PROJECT_VERSION_PATCH@ };
+  constexpr static auto Version         { VERSION(VersionMajor, VersionMinor, VersionPatch) };
+  constexpr static auto VersionString   { "@PROJECT_VERSION@" };
+}; // namespace Config

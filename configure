@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+
+PROJECT="$(basename $(pwd))"
+CONFIG="${1:-release}"
+CONFIG=${CONFIG,,}
+PACKAGE="${PROJECT}-${CONFIG}-$(date +%Y%m%d_%H%M%S)"
+ARCHIVE="${PACKAGE}.tar.bz2"
+INSTALL_PREFIX="${2:-/usr}"
+
+# Cleanup in case of prev build failed
+rm -fr "build/${CONFIG}"
+mkdir -p "build/${CONFIG}"
+
+# Build & install
+( cd "build/${CONFIG}"
+  cmake -DCMAKE_INSTALL_PREFIX="${INSTALL_PREFIX}" \
+        -DCMAKE_STAGING_PREFIX="../${PACKAGE}/${INSTALL_PREFIX}" \
+        -DCMAKE_BUILD_TYPE="${CONFIG}" \
+        ../.. && cmake --build . --target install
+) || exit 1
+
+# Create package
+ls -1 "build/${PACKAGE}" | xargs tar -cvjf "${ARCHIVE}" -C "build/${PACKAGE}"

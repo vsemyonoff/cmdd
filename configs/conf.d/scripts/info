@@ -1,0 +1,1 @@
+echo "${PROJECT_NAME}::info: ConnMan state changed: ${2} ==> ${1}"

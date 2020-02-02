@@ -1,0 +1,9 @@
+[Unit]
+Description=@DESCRIPTION@
+After=connman.service
+
+[Service]
+ExecStart=@CMAKE_INSTALL_PREFIX@/bin/@PROJECT_NAME@
+
+[Install]
+WantedBy=multi-user.target

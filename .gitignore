@@ -1,0 +1,7 @@
+extlibs/fakeit
+.DS_Store
+
+**/build
+*.autosave
+*.tar.bz2
+*.txt.user

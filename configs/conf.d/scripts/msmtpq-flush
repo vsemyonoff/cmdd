@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+shopt -s nullglob
+users=(/var/spool/msmtpq/*)
+for user in "${users[@]##*/}"; do
+    su -l ${user} -c "/usr/local/bin/msmtp-queue -r"
+done
