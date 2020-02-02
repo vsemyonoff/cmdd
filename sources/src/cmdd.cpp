@@ -33,7 +33,7 @@ struct ConnManState
 void signalTrap(int)
 {
     cout << Config::ProjectName << "::info: system signal catched, exiting...\n";
-    cmState.dbus->leaveProcessingLoop();
+    cmState.dbus->leaveEventLoop();
 }
 
 string execCommand(const string& cmd)
@@ -98,7 +98,7 @@ int main(int, const char*[])
     cmProxy->finishRegistration();
 
     cmState.dbus = createSystemBusConnection();
-    cmState.dbus->enterProcessingLoop();
+    cmState.dbus->enterEventLoop();
 
     return 0;
 }
