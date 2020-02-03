@@ -32,6 +32,46 @@ function (add_dir_or_subdirs parent)
     endif ()
 endfunction()
 
+# Split sources list into groups:
+#   ARGN - all args will be interpreted as sources list
+function (split_sources_to_groups)
+    set (headers "Headers")
+    set (sources "Sources")
+
+    foreach (src IN LISTS ARGN)
+        string (REGEX REPLACE "^(${ARGV2}|${ARGV4})/" "" src_trim "${src}")
+
+        get_filename_component (src_dir "${src_trim}" DIRECTORY)
+        get_filename_component (src_name "${src_trim}" NAME)
+
+        string (REPLACE "/" "\\" group_name "${src_dir}")
+
+        set (group_prefix "")
+        if (src_name MATCHES ".*\\.h(pp|xx)?$")
+            set (group_prefix "${headers}")
+        elseif (src_name MATCHES ".*\\.c(pp|xx)?$")
+            set (group_prefix "${sources}")
+        else ()
+            message (WARNING "==> unknown file type ${src_name}")
+            continue ()
+        endif ()
+
+        if (group_name)
+            set (group_name "${group_prefix}\\${group_name}")
+        else ()
+            set (group_name "${group_prefix}")
+        endif ()
+
+        list (APPEND ${group_name}_files "${src}")
+        list (APPEND src_groups "${group_name}")
+    endforeach ()
+
+    list (REMOVE_DUPLICATES src_groups)
+    foreach (group IN LISTS src_groups)
+        source_group ("${group}" FILES ${${group}_files})
+    endforeach ()
+endfunction ()
+
 # Add custom library target:
 #   name         - library name
 #   sources_list - source files list
@@ -43,8 +83,7 @@ function (add_custom_library name sources_list)
     add_library ("${name}" OBJECT ${sources_list})
     set_target_properties ("${name}" PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
-    source_group("Header Files\\Private" REGULAR_EXPRESSION ".*/[Pp]rivate/.*\\.h(pp|xx)?$")
-    source_group("Source Files\\Private" REGULAR_EXPRESSION ".*/[Pp]rivate/.*\\.c(pp|xx)?$")
+    split_sources_to_groups ("${sources_list}")
 
     get_property (targets_list GLOBAL PROPERTY TARGETS_LIST)
     list (APPEND targets_list "${name}")
@@ -120,10 +159,10 @@ function (add_custom_library name sources_list)
         install (TARGETS "${name}_shared" EXPORT "${export_config}"
             LIBRARY NAMELINK_COMPONENT Development DESTINATION "${CMAKE_INSTALL_LIBDIR}"
             )
-        export(TARGETS "${name}_shared" NAMESPACE "${CMAKE_PROJECT_NAME}::"
+        export (TARGETS "${name}_shared" NAMESPACE "${CMAKE_PROJECT_NAME}::"
             FILE "${CMAKE_CURRENT_BINARY_DIR}/${export_config}.cmake"
             )
-        add_library("${CMAKE_PROJECT_NAME}::${name_lowercase}::shared" ALIAS "${name}_shared")
+        add_library ("${CMAKE_PROJECT_NAME}::${name_lowercase}::shared" ALIAS "${name}_shared")
     endif ()
 
     if (NOT DISABLE_STATIC OR NOT DISABLE_SHARED)
@@ -156,7 +195,7 @@ function (add_application name sources_list)
     set_target_properties ("${name}" PROPERTIES OUTPUT_NAME "${name_lowercase}")
 
     target_link_libraries ("${name}" "${ARGV2}")
-    target_include_directories("${name}" PRIVATE "${ARGV3}")
+    target_include_directories ("${name}" PRIVATE "${ARGV3}")
 
     install (TARGETS "${name}" RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
 endfunction ()
@@ -173,14 +212,14 @@ function (add_boost_test name sources_list)
     list (APPEND targets_list "${name}")
     set_property (GLOBAL PROPERTY TARGETS_LIST "${targets_list}")
 
-    target_link_libraries("${name}"
+    target_link_libraries ("${name}"
         Boost::system
         Boost::unit_test_framework
         ${ARGN}
         )
 
     foreach (src IN LISTS sources_list)
-        get_filename_component (src_name ${src} NAME)
+        get_filename_component (src_name "${src}" NAME)
         file (READ "${src_name}" src_contents)
         string (REGEX MATCHALL "BOOST_(AUTO|DATA|FIXTURE|PARAM)_TEST_CASE(_F)?\\( *([A-Za-z_0-9]+)[^)]*\\)"
             found_tests "${src_contents}")

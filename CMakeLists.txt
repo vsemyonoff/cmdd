@@ -76,8 +76,8 @@ if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
         )
 endif ()
 
-## Allow per-folder targets (for IDEs)
-#set_property (GLOBAL PROPERTY USE_FOLDERS ON)
+## Allow per-target folders (for IDEs)
+#set_property (GLOBAL PROPERTY USE_FOLDERS     ON)
 
 # Add source/build folders to headers search path
 set (CMAKE_INCLUDE_DIRECTORIES_PROJECT_BEFORE ON)
@@ -86,11 +86,11 @@ set (CMAKE_INCLUDE_CURRENT_DIR                ON)
 
 ############ Custom options
 
-option (BUILD_EXAMPLES   "Build '${CMAKE_PROJECT_NAME}' examples. Default: OFF"   OFF)
-option (INSTALL_EXAMPLES "Install '${CMAKE_PROJECT_NAME}' examples. Default: OFF" OFF)
 option (DISABLE_SHARED   "Disable shared libraries building. Default: OFF"        OFF)
 option (DISABLE_STATIC   "Disable static libraries building. Default: OFF"        OFF)
 option (STATIC_LINKAGE   "Link executables with static libraries. Default: OFF"   OFF)
+option (BUILD_EXAMPLES   "Build '${CMAKE_PROJECT_NAME}' examples. Default: OFF"   OFF)
+option (INSTALL_EXAMPLES "Install '${CMAKE_PROJECT_NAME}' examples. Default: OFF" OFF)
 
 # Use somelib::${LIB_TYPE} to link targets
 if (STATIC_LINKAGE AND NOT DISABLE_STATIC)
@@ -135,7 +135,7 @@ if (BUILD_TESTING)
                 WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
                 RESULT_VARIABLE GIT_FAKEIT_RESULT)
             if (NOT GIT_FAKEIT_RESULT EQUAL "0")
-                message(FATAL_ERROR "Error: 'FakeIt' library cloning failed with code: ${GIT_FAKEIT_RESULT}")
+                message (FATAL_ERROR "Error: 'FakeIt' library cloning failed with code: ${GIT_FAKEIT_RESULT}")
             endif ()
         endif ()
 
@@ -149,16 +149,17 @@ endif ()
 
 ############ Boost and external libraries
 
-if (STATIC_LINKAGE AND NOT DISABLE_STATIC)
-    set (Boost_USE_STATIC_LIBS    ON )
-else ()
-    set (Boost_USE_STATIC_LIBS    OFF)
-endif ()
-
 if (BUILD_TESTING OR REQUIRED_BOOST_VERSION)
+    if (STATIC_LINKAGE AND NOT DISABLE_STATIC)
+        set (Boost_USE_STATIC_LIBS    ON )
+    else ()
+        set (Boost_USE_STATIC_LIBS    OFF)
+    endif ()
+
     if (NOT REQUIRED_BOOST_VERSION)
         set (REQUIRED_BOOST_VERSION 1.58)
     endif ()
+
     if (REQUIRED_BOOST_LIBS)
         list (REMOVE_DUPLICATES REQUIRED_BOOST_LIBS)
         find_package (Boost ${REQUIRED_BOOST_VERSION} COMPONENTS ${REQUIRED_BOOST_LIBS} REQUIRED)
@@ -184,7 +185,7 @@ if (BUILD_TESTING)
     add_dir_or_subdirs ("${TESTS_DIR}")
     if (AUTORUN_TESTS)
         get_property (TARGETS_LIST GLOBAL PROPERTY TARGETS_LIST)
-        add_custom_target("AutoRunTests" ALL
+        add_custom_target ("AutoRunTests" ALL
             DEPENDS ${TARGETS_LIST}
             WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
             COMMAND +make test
