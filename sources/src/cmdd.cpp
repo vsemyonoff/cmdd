@@ -1,8 +1,6 @@
-#include <atomic>
 #include <csignal>
 #include <filesystem>
 #include <iostream>
-#include <thread>
 
 #include <sdbus-c++/sdbus-c++.h>
 
