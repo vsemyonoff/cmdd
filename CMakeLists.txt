@@ -47,8 +47,7 @@ project ("${PROJECT_NAME}"
     VERSION      "${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH}"
     DESCRIPTION  "${DESCRIPTION}"
     HOMEPAGE_URL "${HOMEPAGE}"
-    LANGUAGES    C CXX
-    )
+    LANGUAGES    C CXX)
 
 ############ C++ standard version setup
 
@@ -69,11 +68,9 @@ set (default_build_type "Release")
 if (NOT CMAKE_BUILD_TYPE AND NOT CMAKE_CONFIGURATION_TYPES)
     message (STATUS "Setting build type to '${default_build_type}' as none was specified")
     set (CMAKE_BUILD_TYPE "${default_build_type}" CACHE
-        STRING "Choose the type of build." FORCE
-        )
+        STRING "Choose the type of build." FORCE)
     set_property (CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS
-        "Debug" "Release" "MinSizeRel" "RelWithDebInfo"
-        )
+        "Debug" "Release" "MinSizeRel" "RelWithDebInfo")
 endif ()
 
 ## Allow per-target folders (for IDEs)
@@ -103,7 +100,11 @@ endif ()
 
 if (EXISTS "${CMAKE_SOURCE_DIR}/.git")
     find_package (Git QUIET)
-    if (GIT_FOUND AND EXISTS "${CMAKE_SOURCE_DIR}/.gitmodules")
+    if (EXISTS "${CMAKE_SOURCE_DIR}/.gitmodules")
+        if (NOT GIT_FOUND)
+            message(FATAL_ERROR "Error: 'git' not installed, can't update submodules")
+        endif ()
+
         # Update submodules as needed
         message (STATUS "Updating Git submodules...")
         execute_process (COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive
@@ -142,8 +143,7 @@ if (BUILD_TESTING)
         # Declare imported library
         add_library (FakeIt INTERFACE IMPORTED)
         set_target_properties (FakeIt PROPERTIES
-            INTERFACE_INCLUDE_DIRECTORIES "${EXTLIBS_DIR}/fakeit/single_header/boost"
-            )
+            INTERFACE_INCLUDE_DIRECTORIES "${EXTLIBS_DIR}/fakeit/single_header/boost")
     endif ()
 endif ()
 
@@ -188,8 +188,7 @@ if (BUILD_TESTING)
         add_custom_target ("AutoRunTests" ALL
             DEPENDS ${TARGETS_LIST}
             WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
-            COMMAND +make test
-            )
+            COMMAND +make test)
     endif ()
 endif()
 

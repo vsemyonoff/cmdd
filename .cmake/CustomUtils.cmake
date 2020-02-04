@@ -107,8 +107,7 @@ function (add_custom_library name sources_list)
         set_target_properties ("${name}_static" PROPERTIES
             EXPORT_NAME "${name_lowercase}::static"
             OUTPUT_NAME "${name_lowercase}"
-            CLEAN_DIRECT_OUTPUT ON
-            )
+            CLEAN_DIRECT_OUTPUT ON)
 
         target_link_libraries ("${name}_static" ${ARGV3})
 
@@ -117,14 +116,11 @@ function (add_custom_library name sources_list)
             "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
             "$<BUILD_INTERFACE:${public_headers_dir}>"
             PRIVATE
-            "${ARGV4}"
-            )
+            "${ARGV4}")
         install (TARGETS "${name}_static" EXPORT "${export_config}"
-            ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-            )
+            ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}")
         export (TARGETS "${name}_static" NAMESPACE "${CMAKE_PROJECT_NAME}::"
-            FILE "${CMAKE_CURRENT_BINARY_DIR}/${export_config}.cmake"
-            )
+            FILE "${CMAKE_CURRENT_BINARY_DIR}/${export_config}.cmake")
         add_library ("${CMAKE_PROJECT_NAME}::${name_lowercase}::static" ALIAS "${name}_static")
     endif ()
 
@@ -145,8 +141,7 @@ function (add_custom_library name sources_list)
             SOVERSION "${lib_version_major}"
             EXPORT_NAME "${name_lowercase}::shared"
             OUTPUT_NAME "${name_lowercase}"
-            CLEAN_DIRECT_OUTPUT ON
-            )
+            CLEAN_DIRECT_OUTPUT ON)
         target_link_libraries ("${name}_shared" ${ARGV3})
 
         target_include_directories ("${name}_shared"
@@ -154,26 +149,21 @@ function (add_custom_library name sources_list)
             "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
             "$<BUILD_INTERFACE:${public_headers_dir}>"
             PRIVATE
-            "${ARGV4}"
-            )
+            "${ARGV4}")
         install (TARGETS "${name}_shared" EXPORT "${export_config}"
-            LIBRARY NAMELINK_COMPONENT Development DESTINATION "${CMAKE_INSTALL_LIBDIR}"
-            )
+            LIBRARY NAMELINK_COMPONENT Development DESTINATION "${CMAKE_INSTALL_LIBDIR}")
         export (TARGETS "${name}_shared" NAMESPACE "${CMAKE_PROJECT_NAME}::"
-            FILE "${CMAKE_CURRENT_BINARY_DIR}/${export_config}.cmake"
-            )
+            FILE "${CMAKE_CURRENT_BINARY_DIR}/${export_config}.cmake")
         add_library ("${CMAKE_PROJECT_NAME}::${name_lowercase}::shared" ALIAS "${name}_shared")
     endif ()
 
     if (NOT DISABLE_STATIC OR NOT DISABLE_SHARED)
         install (EXPORT "${export_config}" NAMESPACE "${CMAKE_PROJECT_NAME}::"
-            DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${CMAKE_PROJECT_NAME}"
-            )
+            DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${CMAKE_PROJECT_NAME}")
         install (DIRECTORY "${public_headers_dir}/"
             DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
             FILES_MATCHING REGEX "^.*\.h(pp|xx)?$"
-            PATTERN "private" EXCLUDE
-            )
+            PATTERN "private" EXCLUDE)
     endif ()
 
     set_property (GLOBAL PROPERTY TARGETS_LIST "${targets_list}")
@@ -215,8 +205,7 @@ function (add_boost_test name sources_list)
     target_link_libraries ("${name}"
         Boost::system
         Boost::unit_test_framework
-        ${ARGN}
-        )
+        ${ARGN})
 
     foreach (src IN LISTS sources_list)
         get_filename_component (src_name "${src}" NAME)
