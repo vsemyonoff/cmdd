@@ -87,18 +87,25 @@ set (CMAKE_INCLUDE_CURRENT_DIR                ON)
 
 ############ Custom options
 
-option (DISABLE_SHARED   "Disable shared libraries building. Default: OFF"        OFF)
-option (DISABLE_STATIC   "Disable static libraries building. Default: OFF"        OFF)
-option (STATIC_LINKAGE   "Link executables with static libraries. Default: OFF"   OFF)
-option (BUILD_EXAMPLES   "Build '${CMAKE_PROJECT_NAME}' examples. Default: OFF"   OFF)
+option (DISABLE_SHARED   "Disable shared libraries building. Default: OFF"         OFF)
+option (DISABLE_STATIC   "Disable static libraries building. Default: OFF"         OFF)
+option (STATIC_LINKAGE   "Link executables with static libraries. Default: OFF"    OFF)
+option (BUILD_EXAMPLES   "Build '${PACKAGE_NAME}' examples. Default: OFF"          OFF)
+
 if (BUILD_EXAMPLES)
-    option (INSTALL_EXAMPLES "Install '${CMAKE_PROJECT_NAME}' examples. Default: OFF" OFF)
+    option (INSTALL_EXAMPLES "Install '${PACKAGE_NAME}' examples. Default: OFF"    OFF)
+endif ()
+
+if (BUILD_TESTING)
+    option (AUTORUN_TESTS "Run all tests after project build. Default: ON"         ON )
+    option (ENABLE_FAKEIT "Setup 'FakeIt' mocking library for Boost. Default: OFF" OFF)
 endif ()
 
 # Use somelib::${LIB_TYPE} to link targets
+set (LIB_TYPE "")
 if (STATIC_LINKAGE AND NOT DISABLE_STATIC)
     set (LIB_TYPE "static")
-else ()
+elseif (NOT STATIC_LINKAGE AND NOT DISABLE_SHARED)
     set (LIB_TYPE "shared")
 endif ()
 
@@ -126,9 +133,6 @@ endif ()
 
 ############ Testing
 if (BUILD_TESTING)
-    option (AUTORUN_TESTS "Run all tests after project build. Default: ON"         ON )
-    option (ENABLE_FAKEIT "Setup 'FakeIt' mocking library for Boost. Default: OFF" OFF)
-
     list (APPEND REQUIRED_BOOST_LIBS "system" "unit_test_framework")
 
     if (ENABLE_FAKEIT)
@@ -152,7 +156,7 @@ if (BUILD_TESTING)
         # Declare imported library
         add_library (FakeIt INTERFACE IMPORTED)
         set_target_properties (FakeIt PROPERTIES
-            INTERFACE_INCLUDE_DIRECTORIES "${EXTLIBS_DIR}/fakeit/single_header/boost")
+            INTERFACE_INCLUDE_DIRECTORIES "${CMAKE_CURRENT_SOURCE_DIR}/${EXTLIBS_DIR}/fakeit/single_header/boost")
     endif ()
 endif ()
 

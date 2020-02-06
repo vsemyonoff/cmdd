@@ -79,25 +79,34 @@ endfunction ()
 #   ARGV3        - extra libraries list to link with (optional)
 #   ARGV4        - private headers dir (optional)
 function (add_custom_library name sources_list)
-    # Objects library to reduce compile time
-    add_library ("${name}" OBJECT ${sources_list})
-    set_target_properties ("${name}" PROPERTIES POSITION_INDEPENDENT_CODE ON)
-
-    split_sources_to_groups ("${sources_list}")
-
     get_property (targets_list GLOBAL PROPERTY TARGETS_LIST)
-    list (APPEND targets_list "${name}")
 
     set (public_headers_dir "${CMAKE_CURRENT_SOURCE_DIR}")
     if (ARGV2)
         set (public_headers_dir "${public_headers_dir}/${ARGV2}")
     endif ()
-    target_include_directories ("${name}" PUBLIC "${public_headers_dir}" PRIVATE "${ARGV4}")
-
-    target_link_libraries ("${name}" ${ARGV3})
 
     string (TOLOWER "${name}" name_lowercase)
     set (export_config "${PACKAGE_NAME}Config")
+
+    # Objects library to reduce compile time
+    add_library ("${name}" OBJECT ${sources_list})
+    list (APPEND targets_list "${name}")
+
+    set_target_properties ("${name}" PROPERTIES
+        EXPORT_NAME "${name_lowercase}"
+        POSITION_INDEPENDENT_CODE ON)
+
+    target_link_libraries ("${name}" ${ARGV3})
+
+    target_include_directories ("${name}"
+        PUBLIC "${public_headers_dir}" "${CMAKE_CURRENT_BINARY_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}"
+        PRIVATE "${ARGV4}")
+    export (TARGETS "${name}" NAMESPACE "${PACKAGE_NAME}::"
+        FILE "${CMAKE_CURRENT_BINARY_DIR}/${export_config}.cmake")
+    add_library ("${PACKAGE_NAME}::${name_lowercase}" ALIAS "${name}")
+
+    split_sources_to_groups ("${sources_list}")
 
     # Static variant
     if (NOT DISABLE_STATIC)
@@ -120,7 +129,7 @@ function (add_custom_library name sources_list)
         install (TARGETS "${name}_static" EXPORT "${export_config}"
             ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}")
         export (TARGETS "${name}_static" NAMESPACE "${PACKAGE_NAME}::"
-            FILE "${CMAKE_CURRENT_BINARY_DIR}/${export_config}.cmake")
+            APPEND FILE "${CMAKE_CURRENT_BINARY_DIR}/${export_config}.cmake")
         add_library ("${PACKAGE_NAME}::${name_lowercase}::static" ALIAS "${name}_static")
     endif ()
 
@@ -153,7 +162,7 @@ function (add_custom_library name sources_list)
         install (TARGETS "${name}_shared" EXPORT "${export_config}"
             LIBRARY NAMELINK_COMPONENT Development DESTINATION "${CMAKE_INSTALL_LIBDIR}")
         export (TARGETS "${name}_shared" NAMESPACE "${PACKAGE_NAME}::"
-            FILE "${CMAKE_CURRENT_BINARY_DIR}/${export_config}.cmake")
+            APPEND FILE "${CMAKE_CURRENT_BINARY_DIR}/${export_config}.cmake")
         add_library ("${PACKAGE_NAME}::${name_lowercase}::shared" ALIAS "${name}_shared")
     endif ()
 
