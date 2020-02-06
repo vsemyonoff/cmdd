@@ -10,9 +10,9 @@ include (CTest)
 #   outfile - output file name
 #   ARGV2   - deploy path (optional)
 function (add_config infile outfile)
-    configure_file ("${infile}" "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_PROJECT_NAME}/${PROJECT_NAME}/${outfile}" @ONLY)
+    configure_file ("${infile}" "${CMAKE_CURRENT_BINARY_DIR}/${PACKAGE_NAME}/${PROJECT_NAME}/${outfile}" @ONLY)
     if (ARGV2)
-        install (FILES "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_PROJECT_NAME}/${PROJECT_NAME}/${outfile}"
+        install (FILES "${CMAKE_CURRENT_BINARY_DIR}/${PACKAGE_NAME}/${PROJECT_NAME}/${outfile}"
             DESTINATION "${ARGV2}")
     endif ()
 endfunction ()
@@ -97,7 +97,7 @@ function (add_custom_library name sources_list)
     target_link_libraries ("${name}" ${ARGV3})
 
     string (TOLOWER "${name}" name_lowercase)
-    set (export_config "${CMAKE_PROJECT_NAME}Config")
+    set (export_config "${PACKAGE_NAME}Config")
 
     # Static variant
     if (NOT DISABLE_STATIC)
@@ -119,9 +119,9 @@ function (add_custom_library name sources_list)
             "${ARGV4}")
         install (TARGETS "${name}_static" EXPORT "${export_config}"
             ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}")
-        export (TARGETS "${name}_static" NAMESPACE "${CMAKE_PROJECT_NAME}::"
+        export (TARGETS "${name}_static" NAMESPACE "${PACKAGE_NAME}::"
             FILE "${CMAKE_CURRENT_BINARY_DIR}/${export_config}.cmake")
-        add_library ("${CMAKE_PROJECT_NAME}::${name_lowercase}::static" ALIAS "${name}_static")
+        add_library ("${PACKAGE_NAME}::${name_lowercase}::static" ALIAS "${name}_static")
     endif ()
 
     # Dynamic variant
@@ -152,14 +152,14 @@ function (add_custom_library name sources_list)
             "${ARGV4}")
         install (TARGETS "${name}_shared" EXPORT "${export_config}"
             LIBRARY NAMELINK_COMPONENT Development DESTINATION "${CMAKE_INSTALL_LIBDIR}")
-        export (TARGETS "${name}_shared" NAMESPACE "${CMAKE_PROJECT_NAME}::"
+        export (TARGETS "${name}_shared" NAMESPACE "${PACKAGE_NAME}::"
             FILE "${CMAKE_CURRENT_BINARY_DIR}/${export_config}.cmake")
-        add_library ("${CMAKE_PROJECT_NAME}::${name_lowercase}::shared" ALIAS "${name}_shared")
+        add_library ("${PACKAGE_NAME}::${name_lowercase}::shared" ALIAS "${name}_shared")
     endif ()
 
     if (NOT DISABLE_STATIC OR NOT DISABLE_SHARED)
-        install (EXPORT "${export_config}" NAMESPACE "${CMAKE_PROJECT_NAME}::"
-            DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${CMAKE_PROJECT_NAME}")
+        install (EXPORT "${export_config}" NAMESPACE "${PACKAGE_NAME}::"
+            DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PACKAGE_NAME}")
         install (DIRECTORY "${public_headers_dir}/"
             DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
             FILES_MATCHING REGEX "^.*\.h(pp|xx)?$"

@@ -31,10 +31,10 @@ set (TESTS_DIR    "tests")
 ############ Project settings
 
 # Load config
-if (NOT EXISTS "${CMAKE_SOURCE_DIR}/config.cmake")
+if (NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/config.cmake")
     message (FATAL_ERROR "Error: 'config.cmake' not found")
 endif ()
-include ("${CMAKE_SOURCE_DIR}/config.cmake")
+include ("${CMAKE_CURRENT_SOURCE_DIR}/config.cmake")
 
 ############ Project setup
 
@@ -49,6 +49,10 @@ project ("${PROJECT_NAME}"
     HOMEPAGE_URL "${HOMEPAGE}"
     LANGUAGES    C CXX)
 
+############ Declare package
+
+set (PACKAGE_NAME "${PROJECT_NAME}")
+
 ############ C++ standard version setup
 
 set (CMAKE_CXX_STANDARD          ${REQUIRED_CXX_STANDARD})
@@ -58,7 +62,7 @@ set (CMAKE_CXX_EXTENSIONS        OFF                     )
 ############ Custom Cmake modules
 
 # Cmake custom modules
-list (APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/.cmake")
+list (APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/.cmake")
 include ("CustomUtils")
 
 ############ Misc
@@ -87,7 +91,9 @@ option (DISABLE_SHARED   "Disable shared libraries building. Default: OFF"      
 option (DISABLE_STATIC   "Disable static libraries building. Default: OFF"        OFF)
 option (STATIC_LINKAGE   "Link executables with static libraries. Default: OFF"   OFF)
 option (BUILD_EXAMPLES   "Build '${CMAKE_PROJECT_NAME}' examples. Default: OFF"   OFF)
-option (INSTALL_EXAMPLES "Install '${CMAKE_PROJECT_NAME}' examples. Default: OFF" OFF)
+if (BUILD_EXAMPLES)
+    option (INSTALL_EXAMPLES "Install '${CMAKE_PROJECT_NAME}' examples. Default: OFF" OFF)
+endif ()
 
 # Use somelib::${LIB_TYPE} to link targets
 if (STATIC_LINKAGE AND NOT DISABLE_STATIC)
@@ -98,9 +104,9 @@ endif ()
 
 ############ Git and submodules
 
-if (EXISTS "${CMAKE_SOURCE_DIR}/.git")
+if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/.git")
     find_package (Git QUIET)
-    if (EXISTS "${CMAKE_SOURCE_DIR}/.gitmodules")
+    if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/.gitmodules")
         if (NOT GIT_FOUND)
             message(FATAL_ERROR "Error: 'git' not installed, can't update submodules")
         endif ()
@@ -108,11 +114,13 @@ if (EXISTS "${CMAKE_SOURCE_DIR}/.git")
         # Update submodules as needed
         message (STATUS "Updating Git submodules...")
         execute_process (COMMAND ${GIT_EXECUTABLE} submodule update --init --recursive
-            WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
-            RESULT_VARIABLE GIT_SUBMOD_RESULT)
-        if (NOT GIT_SUBMOD_RESULT EQUAL "0")
-            message(FATAL_ERROR "Error: submodules update failed with code: ${GIT_SUBMOD_RESULT}")
+            WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+            RESULT_VARIABLE GIT_CLONE_RESULT)
+        if (NOT GIT_CLONE_RESULT EQUAL "0")
+            message(FATAL_ERROR "Error: submodules update failed with code: ${GIT_CLONE_RESULT}")
         endif ()
+        unset (GIT_CLONE_RESULT)
+
     endif ()
 endif ()
 
@@ -129,15 +137,16 @@ if (BUILD_TESTING)
         endif ()
 
         # Clone
-        if (NOT EXISTS "${CMAKE_SOURCE_DIR}/${EXTLIBS_DIR}/fakeit/CMakeLists.txt")
+        if (NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/${EXTLIBS_DIR}/fakeit/CMakeLists.txt")
             message (STATUS "Cloning 'FakeIt' mocking library for the Boost test...")
             set (FAKEIT_URL "git://github.com/eranpeer/FakeIt")
             execute_process (COMMAND ${GIT_EXECUTABLE} clone --depth=1 "${FAKEIT_URL}" "${EXTLIBS_DIR}/fakeit"
-                WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
-                RESULT_VARIABLE GIT_FAKEIT_RESULT)
-            if (NOT GIT_FAKEIT_RESULT EQUAL "0")
-                message (FATAL_ERROR "Error: 'FakeIt' library cloning failed with code: ${GIT_FAKEIT_RESULT}")
+                WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+                RESULT_VARIABLE GIT_CLONE_RESULT)
+            if (NOT GIT_CLONE_RESULT EQUAL "0")
+                message (FATAL_ERROR "Error: 'FakeIt' library cloning failed with code: ${GIT_CLONE_RESULT}")
             endif ()
+            unset (GIT_CLONE_RESULT)
         endif ()
 
         # Declare imported library
