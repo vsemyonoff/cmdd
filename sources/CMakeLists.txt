@@ -8,7 +8,7 @@ set (SOURCES "${HEADER_FILES}" "${SOURCE_FILES}")
 
 set (LIBS "SDBusCpp::sdbus-c++")
 
-add_application ("${PROJECT_NAME}" "${SOURCES}" "${LIBS}")
+add_application ("${PROJECT_NAME}" "${SOURCES}" "" "${LIBS}")
 
 add_config ("../configs/cmdd.service.in" "${PROJECT_NAME}.service" "lib/systemd/system")
 add_config ("../configs/handler.sh.in" "handler.sh" "share/${PROJECT_NAME}")

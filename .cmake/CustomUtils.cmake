@@ -8,7 +8,7 @@ include (CTest)
 # Add target configuration ini file:
 #   infile  - input file name
 #   outfile - output file name
-#   ARGV2   - deploy path (optional)
+#   ARGV2   - deploy path (do not deplay if empty)
 function (add_config infile outfile)
     configure_file ("${infile}" "${CMAKE_CURRENT_BINARY_DIR}/${PACKAGE_NAME}/${PROJECT_NAME}/${outfile}" @ONLY)
     if (ARGV2)
@@ -75,9 +75,9 @@ endfunction ()
 # Add custom library target:
 #   name         - library name
 #   sources_list - source files list
-#   ARGV2        - public headers dir (optional)
-#   ARGV3        - extra libraries list to link with (optional)
-#   ARGV4        - private headers dir (optional)
+#   ARGV2        - public headers dir (can be empty)
+#   ARGV3        - private headers dir (can be empty)
+#   ARGV4        - extra libraries list to link with (can be empty)
 function (add_custom_library name sources_list)
     get_property (targets_list GLOBAL PROPERTY TARGETS_LIST)
 
@@ -97,13 +97,20 @@ function (add_custom_library name sources_list)
         EXPORT_NAME "${name_lowercase}"
         POSITION_INDEPENDENT_CODE ON)
 
-    target_link_libraries ("${name}" ${ARGV3})
-
     target_include_directories ("${name}"
-        PUBLIC "${public_headers_dir}" "${CMAKE_CURRENT_BINARY_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}"
-        PRIVATE "${ARGV4}")
+        PUBLIC
+        "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
+        "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>"
+        "$<BUILD_INTERFACE:${public_headers_dir}>"
+        PRIVATE
+        "${ARGV4}")
+
+    target_link_libraries ("${name}" ${ARGV4})
+
     export (TARGETS "${name}" NAMESPACE "${PACKAGE_NAME}::"
         FILE "${CMAKE_CURRENT_BINARY_DIR}/${export_config}.cmake")
+    install (TARGETS "${name}" EXPORT "${export_config}")
+
     add_library ("${PACKAGE_NAME}::${name_lowercase}" ALIAS "${name}")
 
     split_sources_to_groups ("${sources_list}")
@@ -118,18 +125,13 @@ function (add_custom_library name sources_list)
             OUTPUT_NAME "${name_lowercase}"
             CLEAN_DIRECT_OUTPUT ON)
 
-        target_link_libraries ("${name}_static" ${ARGV3})
+        target_link_libraries ("${name}_static" PUBLIC "${PACKAGE_NAME}::${name_lowercase}" ${ARGV4})
 
-        target_include_directories ("${name}_static"
-            PUBLIC
-            "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
-            "$<BUILD_INTERFACE:${public_headers_dir}>"
-            PRIVATE
-            "${ARGV4}")
-        install (TARGETS "${name}_static" EXPORT "${export_config}"
-            ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}")
         export (TARGETS "${name}_static" NAMESPACE "${PACKAGE_NAME}::"
             APPEND FILE "${CMAKE_CURRENT_BINARY_DIR}/${export_config}.cmake")
+        install (TARGETS "${name}_static" EXPORT "${export_config}"
+            ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+
         add_library ("${PACKAGE_NAME}::${name_lowercase}::static" ALIAS "${name}_static")
     endif ()
 
@@ -151,18 +153,14 @@ function (add_custom_library name sources_list)
             EXPORT_NAME "${name_lowercase}::shared"
             OUTPUT_NAME "${name_lowercase}"
             CLEAN_DIRECT_OUTPUT ON)
-        target_link_libraries ("${name}_shared" ${ARGV3})
 
-        target_include_directories ("${name}_shared"
-            PUBLIC
-            "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
-            "$<BUILD_INTERFACE:${public_headers_dir}>"
-            PRIVATE
-            "${ARGV4}")
-        install (TARGETS "${name}_shared" EXPORT "${export_config}"
-            LIBRARY NAMELINK_COMPONENT Development DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+        target_link_libraries ("${name}_shared" PUBLIC "${PACKAGE_NAME}::${name_lowercase}" ${ARGV4})
+
         export (TARGETS "${name}_shared" NAMESPACE "${PACKAGE_NAME}::"
             APPEND FILE "${CMAKE_CURRENT_BINARY_DIR}/${export_config}.cmake")
+        install (TARGETS "${name}_shared" EXPORT "${export_config}"
+            LIBRARY NAMELINK_COMPONENT Development DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+
         add_library ("${PACKAGE_NAME}::${name_lowercase}::shared" ALIAS "${name}_shared")
     endif ()
 
@@ -172,7 +170,7 @@ function (add_custom_library name sources_list)
         install (DIRECTORY "${public_headers_dir}/"
             DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
             FILES_MATCHING REGEX "^.*\.h(pp|xx)?$"
-            PATTERN "private" EXCLUDE)
+            REGEX "[Pp]rivate" EXCLUDE)
     endif ()
 
     set_property (GLOBAL PROPERTY TARGETS_LIST "${targets_list}")
@@ -181,8 +179,8 @@ endfunction ()
 # Add executable target:
 #   name         - application name
 #   sources_list - source files list
-#   ARGV2        - extra libraries to link with (optional)
-#   ARGV3        - headers include dir (optional)
+#   ARGV2        - extra headers include dir (can be empty)
+#   ARGV3        - extra libraries to link with (can be empty)
 function (add_application name sources_list)
     add_executable ("${name}" "${sources_list}")
 
@@ -193,8 +191,8 @@ function (add_application name sources_list)
     string (TOLOWER "${name}" name_lowercase)
     set_target_properties ("${name}" PROPERTIES OUTPUT_NAME "${name_lowercase}")
 
-    target_link_libraries ("${name}" "${ARGV2}")
-    target_include_directories ("${name}" PRIVATE "${ARGV3}")
+    target_include_directories ("${name}" PRIVATE "${ARGV2}")
+    target_link_libraries ("${name}" "${ARGV3}")
 
     install (TARGETS "${name}" RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
 endfunction ()
