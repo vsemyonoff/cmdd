@@ -33,13 +33,15 @@ function (add_dir_or_subdirs parent)
 endfunction()
 
 # Split sources list into groups:
-#   ARGN - all args will be interpreted as sources list
-function (split_sources_to_groups)
+#   public  - public headers dir (can be empty)
+#   private - private headers dir (can be empty)
+#   ARGN    - the rest of args will be interpreted as sources list
+function (split_sources_to_groups public private)
     set (headers "Headers")
     set (sources "Sources")
 
     foreach (src IN LISTS ARGN)
-        string (REGEX REPLACE "^(${ARGV2}|${ARGV4})/" "" src_trim "${src}")
+        string (REGEX REPLACE "^(${public}|${private})/" "" src_trim "${src}")
 
         get_filename_component (src_dir "${src_trim}" DIRECTORY)
         get_filename_component (src_name "${src_trim}" NAME)
@@ -103,9 +105,9 @@ function (add_custom_library name sources_list)
         "$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>"
         "$<BUILD_INTERFACE:${public_headers_dir}>"
         PRIVATE
-        "${ARGV4}")
+        "${ARGV3}")
 
-    target_link_libraries ("${name}" ${ARGV4})
+    target_link_libraries ("${name}" PUBLIC ${ARGV4})
 
     export (TARGETS "${name}" NAMESPACE "${PACKAGE_NAME}::"
         FILE "${CMAKE_CURRENT_BINARY_DIR}/${export_config}.cmake")
@@ -113,7 +115,7 @@ function (add_custom_library name sources_list)
 
     add_library ("${PACKAGE_NAME}::${name_lowercase}" ALIAS "${name}")
 
-    split_sources_to_groups ("${sources_list}")
+    split_sources_to_groups ("${ARGV2}" "${ARGV3}" ${sources_list})
 
     # Static variant
     if (NOT DISABLE_STATIC)
@@ -125,7 +127,7 @@ function (add_custom_library name sources_list)
             OUTPUT_NAME "${name_lowercase}"
             CLEAN_DIRECT_OUTPUT ON)
 
-        target_link_libraries ("${name}_static" PUBLIC "${PACKAGE_NAME}::${name_lowercase}" ${ARGV4})
+        target_link_libraries ("${name}_static" PUBLIC "${PACKAGE_NAME}::${name_lowercase}")
 
         export (TARGETS "${name}_static" NAMESPACE "${PACKAGE_NAME}::"
             APPEND FILE "${CMAKE_CURRENT_BINARY_DIR}/${export_config}.cmake")
@@ -154,7 +156,7 @@ function (add_custom_library name sources_list)
             OUTPUT_NAME "${name_lowercase}"
             CLEAN_DIRECT_OUTPUT ON)
 
-        target_link_libraries ("${name}_shared" PUBLIC "${PACKAGE_NAME}::${name_lowercase}" ${ARGV4})
+        target_link_libraries ("${name}_shared" PUBLIC "${PACKAGE_NAME}::${name_lowercase}")
 
         export (TARGETS "${name}_shared" NAMESPACE "${PACKAGE_NAME}::"
             APPEND FILE "${CMAKE_CURRENT_BINARY_DIR}/${export_config}.cmake")
@@ -170,7 +172,7 @@ function (add_custom_library name sources_list)
         install (DIRECTORY "${public_headers_dir}/"
             DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
             FILES_MATCHING REGEX "^.*\.h(pp|xx)?$"
-            REGEX "[Pp]rivate" EXCLUDE)
+            REGEX "/[Pp]rivate(/.*)?$" EXCLUDE)
     endif ()
 
     set_property (GLOBAL PROPERTY TARGETS_LIST "${targets_list}")
@@ -210,7 +212,6 @@ function (add_boost_test name sources_list)
     set_property (GLOBAL PROPERTY TARGETS_LIST "${targets_list}")
 
     target_link_libraries ("${name}"
-        Boost::system
         Boost::unit_test_framework
         ${ARGN})
 

@@ -133,7 +133,7 @@ endif ()
 
 ############ Testing
 if (BUILD_TESTING)
-    list (APPEND REQUIRED_BOOST_LIBS "system" "unit_test_framework")
+    list (APPEND REQUIRED_BOOST_LIBS "unit_test_framework")
 
     if (ENABLE_FAKEIT)
         if (NOT GIT_FOUND)
