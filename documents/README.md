@@ -1,8 +1,9 @@
 ## ConnMan D-bus network state Dispatcher
-Small service to monitor `ConnMan` network state changes via `D-Bus` interface and execute corresponding shell scripts.
+Small service to monitor [`ConnMan`](https://01.org/connman) network state changes via
+[`D-Bus`](https://www.freedesktop.org/wiki/Software/dbus) interface and execute corresponding shell scripts.
 
 ### Install
-Arch users can install package from AUR, others should use `cmake` installation procedure:
+Arch users can install package from AUR, others should use [`CMake`](https://cmake.org) installation procedure:
 ```
 $ wget https://github.com/vsemyonoff/cmdd/archive/v1.0.0.tar.gz
 $ tar xvf v1.0.0.tar.gz
@@ -12,6 +13,7 @@ $ cmake -DCMAKE_BUILD_TYPE=Release ..
 $ cmake --build .
 $ sudo cmake --install .
 ```
+Be sure that [`sdbus-cpp`](https://github.com/Kistler-Group/sdbus-cpp) library installed before.
 
 ### Usage
 `/etc/cmdd.conf.d` structure:
