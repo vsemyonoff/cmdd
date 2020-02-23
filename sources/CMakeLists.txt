@@ -15,4 +15,4 @@ add_config ("../configs/handler.sh.in" "handler.sh" "share/${PROJECT_NAME}")
 add_config ("config.hpp.in" "config.hpp")
 
 install(DIRECTORY "${CMAKE_SOURCE_DIR}/configs/conf.d/"
-    DESTINATION "../etc/${PROJECT_NAME}.conf.d/" USE_SOURCE_PERMISSIONS)
+  DESTINATION "../etc/${PROJECT_NAME}.conf.d/" USE_SOURCE_PERMISSIONS)
