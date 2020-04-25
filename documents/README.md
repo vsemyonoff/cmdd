@@ -5,20 +5,20 @@ Small service to monitor [`ConnMan`](https://01.org/connman) network state chang
 
 ### Install
 
-Arch Linux users can install the package directly from AUR.  
+Arch Linux users can install the package directly from AUR.
 Others should use [`CMake`](https://cmake.org) installation procedure:
 
 ```
-$ wget https://github.com/vsemyonoff/cmdd/archive/v1.0.1.tar.gz
-$ tar xvf v1.0.1.tar.gz
-$ cd cmdd-1.0.1
+$ wget https://github.com/vsemyonoff/cmdd/archive/v1.0.2.tar.gz
+$ tar xvf v1.0.2.tar.gz
+$ cd cmdd-1.0.2
 $ mkdir build && cd build
 $ cmake -DCMAKE_BUILD_TYPE=Release ..
 $ cmake --build .
 $ sudo cmake --install .
 ```
 
-Be sure that [`sdbus-cpp`](https://github.com/Kistler-Group/sdbus-cpp) library is installed before.
+Be sure that [`sdbus-cpp`](https://github.com/Kistler-Group/sdbus-cpp) library installed before.
 
 ### Usage
 
