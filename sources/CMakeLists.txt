@@ -1,4 +1,4 @@
-project ("cmdd" VERSION "1.0.1")
+project ("cmdd" VERSION "1.0.2")
 
 find_package (sdbus-c++ REQUIRED)
 
