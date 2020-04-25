@@ -1,0 +1,8 @@
+#!/bin/sh
+
+timezone="$(curl -s --fail https://ipapi.co/timezone)"
+
+if [ $? -eq 0 ]; then
+	timedatectl set-timezone "$timezone"
+	echo "Current timezone: $timezone"
+fi
